@@ -267,7 +267,7 @@ def check_packages(conf, pkg_list):
             conf.check_cfg(args='--cflags --libs', 
                            package = pkg_name + '-' + pkg_version, 
                            mandatory=pkg_mandatory, 
-                           uselib_store=pkg_name.upper())
+                           uselib_store=pkg_name.replace('-', '_').upper())
         except Configure.ConfigurationError:
             conf.fatal('unable to locate %s-%s (mandatory)' % (pkg_name, pkg_version))
 

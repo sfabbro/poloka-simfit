@@ -1,58 +1,16 @@
 # -*- mode: python -*-
 # 
 
-import pprint
-import os
 import frogsutils
-from waflib import Context
 
 def build( bld ):
-    
-    sources = bld.path.ant_glob('*.cc', bld=False)
-    local_libs= ['toads_base', 'toads_utils', 'cern_stuff']
-    if not bld.env.global_lapack:
-        local_libs += ['lapack_stuff']
-        
-    #    libs = [ 'm', 'sex', 'wcs', 'fits', 'cfitsio', 'z']
-    libs = [ 'm', 'z']
-    if bld.env.global_lapack:
-        libs.append('lapack')    
-        
-        
-    bld ( name = 'flex', 
-          source   = 'dbfileLex.l',
-          target   = 'dbfileLex.c',
-          includes = [ '.' ], 
-          rule     = 'flex -o${TGT} ${SRC}',
-          before   = 'cc cxx',
-          )
-    
-    bld ( name = 'bis', 
-          source = 'dbfileParse.y', 
-          target = [ 'dbfileParse.c', 'dbfileParse.h', ], 
-          rule   = 'bison -y -l -d ${SRC} -o ${TGT[0].abspath()}',
-          includes = [ '.' ],
-          before   = 'cc cxx'
-          )
-
-    #    cdir = os.path.join(bld.bdir,bld.env.NAME)
-    lib = bld.shlib(name = 'toadslib', 
-                    source = sources + ['dbfileParse.c', 'dbfileLex.c'],
-                    target = 'toadslib', 
-                    includes = [ '.', '../src_utils', '../src_base' ],
-                    lib      = libs, 
-                    use      = local_libs, 
-                    uselib = ['SEX','CFITSIO' ],
-                    vnum     = frogsutils.get_version_number())    
-    lib.rpath  = [ bld.env['PREFIX'] + '/lib'] 
-    lib.rpath += bld.env['LIBPATH_CFITSIO']
-    lib.rpath += bld.env['LIBPATH_SEX']
-
-
-    # install the headers 
-    headers  = bld.path.ant_glob('*.h')
-    starlist = bld.path.ant_glob('starlist.cc')
-    
-    bld.install_files('${PREFIX}/${PKG_INCDIR}', headers + starlist)
-    
-    
+    sources = bld.path.ant_glob('*.cc')    
+    lib = bld.shlib(source = sources,
+                    target = 'poloka-lc', 
+                    includes = ['.', '..'], 
+                    libs     = ['m'], 
+                    use      = ['POLOKA_CORE', 'POLOKA_PSF'],
+                    vnum     = frogsutils.get_version_number())
+    lib.rpath = [bld.env.PREFIX + '/lib']
+    headers = bld.path.ant_glob('*.h')
+    bld.install_files('${PREFIX}/${PKG_INCDIR}', headers)

@@ -1,0 +1,17 @@
+# -*- mode: python -*-
+# 
+
+import frogsutils
+
+def build( bld ):
+    sources = bld.path.ant_glob('*.cc', excl=['make_single_lightcurve.cc'])    
+    for src in sources:
+        target = str(src).replace('.cc', '')
+        prog = bld( features = 'cxx cprogram', 
+                    source = src,
+                    target = target,
+                    includes = ['.', '../src'],
+                    lib = ['m', 'z'], 
+                    use = ['poloka-lc'],
+                    vnum = frogsutils.get_version_number() )                          
+        prog.rpath  = [ bld.env['PREFIX'] + '/lib'] 
