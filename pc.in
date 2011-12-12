@@ -7,5 +7,5 @@ Description: @DESCRIPTION@
 Version: @VERSION@
 Libs: -L${libdir} @ALL_LIBS@
 #Libs.private: -lm
-Requires: @REQUIREMENTS@
+Requires.private: @REQUIREMENTS@
 Cflags: -I${includedir}

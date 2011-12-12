@@ -8,6 +8,7 @@ import commands
 import Configure 
 import Options
 from waflib import Context
+from waflib.TaskGen import feature, before
 from waflib.Tools import c_preproc
 c_preproc.go_absolute = True
 
@@ -121,6 +122,11 @@ def configure(conf):
     pkg = Context.g_module.APPNAME
     ver = Context.g_module.VERSION
     conf.env['PKG_INCDIR'] = op.join('include', '%s-%s' % (pkg,ver))
+
+    # poloka packages 
+    pkgdir = os.getenv('POLOKA_PACKAGES')
+    if pkgdir:
+        conf.env['POLOKA_PACKAGES'] = pkgdir
     
 
 def load_pkg_config(conf):
@@ -257,9 +263,7 @@ def check_packages(conf, pkg_list):
     - Parse the cflags and libs and store the information 
       in the uselib_store.
     """
-    
     load_pkg_config(conf)
-
     # check for the packages passed in arguments 
     for pkg in pkg_list:
         try:
@@ -271,6 +275,54 @@ def check_packages(conf, pkg_list):
         except Configure.ConfigurationError:
             conf.fatal('unable to locate %s-%s (mandatory)' % (pkg_name, pkg_version))
 
+
+@feature('cshlib')
+@feature('cxxshlib')
+@feature('cprogram')
+@feature('cxxprogram')
+@before('process_subst')
+def hack_shlib_rpath(self):
+    bld = self.bld 
+    requirements = Context.g_module.requirements
+    rpath = [self.bld.env.PREFIX + os.sep + 'lib']
+    for pkg in requirements:
+        pkg_name = pkg[0].replace('-', '_').upper()
+        rp = self.bld.env['LIBPATH_' + pkg_name]
+        if rp.__class__ is list:
+            rpath.extend(rp)
+        else:
+            rpath.append(rp)
+    rpath = set(rpath)
+    for g in self.bld.groups:
+        for tg in g:
+            try:
+                if 'cshlib' in tg.features or \
+                   'cxxshlib' in tg.features or \
+                   'cprogram' in tg.features or \
+                   'cxxprogram' in tg.features:
+                    ret = getattr(tg, 'rpath', [])
+                    ret.extend(rpath)
+                    tg.rpath = ret
+            except:
+                pass
+    
+# @feature('cprogram')
+# @feature('cxxprogram')
+# @before('process_subst')
+# def hack_program_rpath(self):
+#     rpath = self.bld.env.PREFIX + os.sep + 'lib'
+#     for g in self.bld.groups:
+#         for tg in g:
+#             try:
+#                 if 'cprogram' in tg.features or \
+#                    'cxxprogram' in tg.features:
+#                     ret = getattr(tg, 'rpath', [])
+#                     if rpath in ret: continue
+#                     ret.append(rpath)
+#                     tg.rpath = ret
+#                     print "hack_program_rpath !", tg.name, rpath
+#             except:
+#                 pass
     
 def install_headers(bld, headers):
     """
@@ -284,12 +336,12 @@ def install_headers(bld, headers):
 
 
 def gen_pkgconfig(bld):
-    
     # solution directly from T. Nagy (see email in google-groups)
-    from waflib.TaskGen import feature, before
+    from waflib.TaskGen import feature, before, after
     @feature('subst')
     @before('process_subst')
     def read_libs(self):
+        self.env.append_value('ALL_LIBS', " ")
         for g in self.bld.groups:
             for tg in g:
                 try:
@@ -297,12 +349,24 @@ def gen_pkgconfig(bld):
                        'cxxshlib' in tg.features or \
                        'fcshlib' in tg.features:
                         # or 'cxxshlib'/'fcshlib'/'dshlib' in tg.features
-                        self.env.append_value('ALL_LIBS', "-l" + tg.name)
-                    
+                        self.env.append_value('ALL_LIBS', "-l" + tg.name)                    
                 except:
                     pass
                 
-
+    @feature('subst')
+    @after('process_subst')
+    def link_pcfile_to_poloka_packages(self):
+        for g in self.bld.groups:
+            for tg in g:
+                try:
+                    if 'subst' in tg.features:
+                        pcfile = tg.tasks[0].outputs[0]
+                        if self.bld.env.POLOKA_PACKAGES:
+                            self.bld.symlink_as(self.bld.env.POLOKA_PACKAGES + os.sep + obj.name, 
+                                                pcfile.abspath())
+                except:
+                    pass
+        
     appname = Context.g_module.APPNAME
     version = Context.g_module.VERSION    
     description = Context.g_module.description
@@ -310,7 +374,6 @@ def gen_pkgconfig(bld):
     requirements = ""
     for r in reqs:
         requirements += r[0] + "-" + r[1] + " "
-    
     obj = bld(features = 'subst', 
               target = '%s-%s.pc' % (appname, version),
               source = 'pc.in', 
@@ -319,13 +382,12 @@ def gen_pkgconfig(bld):
               APPNAME   = appname,
               DESCRIPTION = description,
               VERSION = version,
-              REQUIREMENTS = requirements
-#              LIBS = ["-L${libdir} "] + bld.env['ALL_LIBS']
-	)
-    
+              REQUIREMENTS = requirements)
+    # LIBS = ["-L${libdir} "] + bld.env['ALL_LIBS']
 
 # for the moment, we hook up this function 
 # to the main module... May change in the future 
 Context.g_module.__dict__['gen_pkgconfig'] = gen_pkgconfig
 Context.g_module.__dict__['install_headers'] = install_headers
+# Context.g_module.__dict__['get_required_package_libpaths'] =  get_required_package_libpaths
 
