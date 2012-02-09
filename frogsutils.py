@@ -13,6 +13,11 @@ def get_out_name():
     Generate an (architecture dependant) 
     build directory name.
     """
+    ret = commands.getstatusoutput('fs sys')
+    if ret[0] == 0:
+        at_sys_name = ret[1].split("'")[-2]
+        out_name = 'build.' + at_sys_name
+        return out_name
     ret = os.uname()
     out_name = 'build.'+ ret[0]+'-'+ret[-1]
     return op.join('build', out_name)
