@@ -1,13 +1,13 @@
 #include <math.h>
 #include <iostream>
 #include <fstream>
-#include <matvect.h>
-#include <polokaexception.h>
-#include "fileutils.h"
 
+#include <poloka/matvect.h>
+#include <poloka/polokaexception.h>
+#include <poloka/fileutils.h>
+#include <poloka/dictfile.h>
 
-#include "lightcurvepoint.h"
-#include "dictfile.h"
+#include <poloka/lightcurvepoint.h>
 
 //#define DEBUG 
 

@@ -1,8 +1,10 @@
 #include <iostream>
 #include <fstream>
-#include <lightcurve.h>
-#include <simfitphot.h>
 #include <algorithm>
+
+#include <poloka/lightcurve.h>
+#include <poloka/simfitphot.h>
+
 
 using namespace std;
 

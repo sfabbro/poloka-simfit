@@ -1,9 +1,5 @@
-.waf*
-build/
-*.pyc
 *~
 .lock-*
-<<<<<<< HEAD
 
 # autotools generated
 ChangeLog
@@ -13,12 +9,12 @@ ChangeLog
 *.loT
 .deps
 .libs
+*pc
 stamp-h*
 config.h
 Makefile
 Makefile.in
 libtool
-poloka.pc
 /m4/libtool.m4
 /m4/lt*.m4
 /aclocal.m4
@@ -31,19 +27,8 @@ poloka.pc
 /autoconf
 /doc/Doxyfile
 
-# parser generated
-/src_base/alltelinst.*
-/src/dbfileLex.c
-/src/dbfileParse.c
-/src/dbfileParse.h
-
 # execs
-/flat/*
-!/flat/*.cc
-/simphot/mklc
-/utils/*
-!/utils/*.cc
+/tools/*
+!/tools/*.cc
 !Makefile.am
-!wscript
-=======
->>>>>>> poloka-lc/master
+

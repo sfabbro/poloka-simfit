@@ -2,9 +2,10 @@
 #include <map>
 #include <unistd.h>
 
-#include <poloka/vignetserver.h>
 #include <poloka/fitsimage.h>
+#include <poloka/fileutils.h>
 
+#include <poloka/vignetserver.h>
 
 #define SERVERDEBUG true
 #define SUPERSHORT unsigned char
@@ -139,8 +140,6 @@ void reserve_vignet_in_server(const std::string& fitsfilename, const Window& win
 }
 
 #define VALUE_WHEN_OUTSIDE -1.1e60
-
-#include "fileutils.h"
 
 void read_reserved_vignets(const string& fitsfilename) {
   

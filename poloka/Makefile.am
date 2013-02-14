@@ -17,7 +17,6 @@ src_include_HEADERS = \
 	simfit.h \
 	simfitphot.h \
 	simfitvignet.h \
-	swarpstack.h \
 	vignet.h \
 	vignetphot.h \
 	vignetserver.h
@@ -34,7 +33,6 @@ libpoloka_lc_la_SOURCES = \
 	simfit.cc \
 	simfitphot.cc \
 	simfitvignet.cc \
-	swarpstack.cc \
 	vignet.cc \
 	vignetphot.cc \
 	vignetserver.cc

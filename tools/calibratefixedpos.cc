@@ -1,22 +1,22 @@
 #include <iostream>
 #include <fstream>
-#include <fileutils.h>
-#include <dictfile.h>
-#include <basestar.h>
-#include <frame.h>
-#include <wcsutils.h>
-#include <reducedimage.h>
-#include <fitsimage.h>
-#include <gtransfo.h>
-#include <photstar.h>
-#include <lightcurve.h>
-#include <simfitphot.h>
-#include <vutils.h>
-#include <imagematch.h>
-#include <gtransfo.h>
-
 #include <map>
 #include <iomanip>
+
+#include <poloka/fileutils.h>
+#include <poloka/dictfile.h>
+#include <poloka/basestar.h>
+#include <poloka/frame.h>
+#include <poloka/wcsutils.h>
+#include <poloka/reducedimage.h>
+#include <poloka/fitsimage.h>
+#include <poloka/gtransfo.h>
+#include <poloka/photstar.h>
+#include <poloka/lightcurve.h>
+#include <poloka/simfitphot.h>
+#include <poloka/vutils.h>
+#include <poloka/reducedutils.h>
+#include <poloka/gtransfo.h>
 
 using namespace std;
 
@@ -84,13 +84,7 @@ int main(int argc, char **argv)
   if( maxnimages > 0 && dbimages.size() > maxnimages) cout << " limited to " << maxnimages;
   cout << endl;
   
-  CountedRef<Gtransfo> direct,reverse;
-  // find transfo from referencedbimage_for_positions to referencedbimage
-  {
-    ReducedImage image_from(referencedbimage_for_positions);
-    ReducedImage image_to(referencedbimage); 
-    ImageListMatch(image_from,image_to,direct, reverse);
-  }
+  GtransfoRef direct = FindTransfo(referencedbimage_for_positions, referencedbimage);
   
   // put all of this info in a LightCurveList which is the food of the photometric fitter
   LightCurveList lclist;

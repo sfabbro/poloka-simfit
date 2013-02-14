@@ -1,8 +1,9 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <fileutils.h>
-#include <fitsimage.h>
+
+#include <poloka/fileutils.h>
+#include <poloka/fitsimage.h>
 
 using namespace std;
 

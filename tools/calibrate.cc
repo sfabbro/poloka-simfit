@@ -1,23 +1,24 @@
 #include <iostream>
 #include <fstream>
-#include <fileutils.h>
-#include <dictfile.h>
-#include <basestar.h>
-#include <frame.h>
-#include <wcsutils.h>
-#include <reducedimage.h>
-#include <fitsimage.h>
-#include <gtransfo.h>
-#include <photstar.h>
-#include <lightcurve.h>
-#include <simfitphot.h>
-#include <vutils.h>
-#include <imageutils.h>
-#include <apersestar.h>
-#include <fastfinder.h>
 #include <string>
 #include <map>
 #include <iomanip>
+
+#include <poloka/fileutils.h>
+#include <poloka/dictfile.h>
+#include <poloka/basestar.h>
+#include <poloka/frame.h>
+#include <poloka/wcsutils.h>
+#include <poloka/reducedimage.h>
+#include <poloka/fitsimage.h>
+#include <poloka/gtransfo.h>
+#include <poloka/photstar.h>
+#include <poloka/lightcurve.h>
+#include <poloka/simfitphot.h>
+#include <poloka/vutils.h>
+#include <poloka/imageutils.h>
+#include <poloka/apersestar.h>
+#include <poloka/fastfinder.h>
 
 using namespace std;
 
@@ -115,9 +116,8 @@ int main(int argc, char **argv)
   // prepare transfo and frames for stars' selection
   Frame W = lclist.RefImage->UsablePart();
   // W = W.Rescale(1.); // remove boundaries
-  Gtransfo* Pix2RaDec=0;
-  WCSFromHeader(header, Pix2RaDec);
-  Gtransfo *RaDec2Pix = Pix2RaDec->InverseTransfo(0.01,W);
+  GtransfoRef Pix2RaDec = WCSFromHeader(header);
+  GtransfoRef RaDec2Pix = Pix2RaDec->InverseTransfo(0.01,W);
   Frame radecW = (ApplyTransfo(W,*Pix2RaDec)).Rescale(1.1);
 
   DictFile catalog(catalogname);

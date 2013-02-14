@@ -19,8 +19,6 @@ SimFitPhot::SimFitPhot(LightCurveList& Fiducials,bool usegal)
   bWriteLC=true;
   bOutputDirectoryFromName=false;
   
-  zeFit.reserve(Fiducials.Images.size());
-  
   zeFit.VignetRef = new SimFitRefVignet(Fiducials.RefImage,usegal); //  no data will be read cause no star is defined
 #ifdef DEBUG
   SimFitRefVignet* toto = zeFit.VignetRef;
