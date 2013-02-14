@@ -3,6 +3,7 @@ build/
 *.pyc
 *~
 .lock-*
+<<<<<<< HEAD
 
 # autotools generated
 ChangeLog
@@ -44,3 +45,5 @@ poloka.pc
 !/utils/*.cc
 !Makefile.am
 !wscript
+=======
+>>>>>>> poloka-lc/master

@@ -1,65 +1,31 @@
-poloka - Library and tools for wide survey and light curve photometry
-=====================================================================
+poloka-lc - light curve  module for the poloka suite
+=====================================================
 
 Installation Instructions
 =========================
 
-poloka follows the standard GNU installation procedure.  To compile
-poloka you will a few packages described below. After unpacking the
-distribution you can install poloka using standard autotools:
+poloka-lc follows the standard GNU installation procedure. To
+compile poloka-lc you will a few packages described below. After
+unpacking the distribution you can install poloka-lc using standard
+autotools:
 
    $ ./configure; make ; make install
 
 Requirements
 ============
 
-poloka needs a few standard packages and compilers:
+poloka-lc needs a few standard packages and compilers:
 
-* A C/C++ compiler (tested with gcc/g++ up to version 4.6)
+* A C/C++ compiler (tested with gcc/g++ up to version 4.7)
+* The pkg-config tool
+* The poloka-core library
+* The poloka-sub library
+* The poloka-psf library
 
-* The BLAS and LAPACK libraries. The reference from
-  http://www.netlib.org/ are fine, but you might want to try faster
-  versions, especially for BLAS (GotoBLAS, ATLAS, ACML, MKL,...)
-  To specify non-standard BLAS and LAPACK linking, use the
-  --with-blas=<linking flags> configure options (similar for LAPACK).
-
-* A FORTRAN 77 compiler (tested with gfortran up to version 4.6.x)
-  Note this is only to compile a few linear algebra routines taken
-  from the CERNLIB sources. But you might want to make sure to use the
-  same FORTRAN 77 compiler was used to compile the BLAS/LAPACK
-  libraries to avoid linking troubles.
-
-* The SExtractor Library (libsex). This is our own packed version of
-  SExtractor with some specific changes. Install from
-  http://astrowww.phys.uvic.ca/~seb/poloka/libsex-2.4.4.3.tar.gz
-
-* The CFITSIO library. Use either the stock library from your Linux
-  distribution, install the one repacked properly by us at:
-  http://astrowww.phys.uvic.ca/~seb/cfitsio-3.280.tar.gz or the one
-  from the home page: http://heasarc.gsfc.nasa.gov/fitsio/
-
-* The zlib compression library. Use the stock one from your
-  distribution, don't try to compile it yourself.
-
-* Optional: cernlib. This is only needed for a couple utilities to
-  convert n-tuples callable from HBOOK (you only want this if you know
-  what we are talking about).
-
-* Optional: ImageMagick. You would need the ImageMagick++ libraries
-  if you want to build the utilities to create small display.
-
-* Optional: SWarp (http://www.astromatic.net/software/swarp). There
-  exist a wrapper for swarp, but it is not needed at compile time. 
-
-* Optional: SALT. If you want to use the Monte-Carlo libraries and
-  utilities to create fake supernova images, you will need the Spectral
-  Adaptive Lightcurve Template. The package is known as snfit
-  (--enable-mc option in configure).
-
-All include and linking directories, compiler directives and other can
-be shown running ./configure --help.
-To specify environment variables or optimization flags, do it at
-configure time. Ex: ./configure CXXFLAGS="-O2 -march=native" 
+All include directories, linking directories, compiler directives and other
+flags can be set. Running ./configure --help will show you which ones
+you can set. You might need to specify PKG_CONFIG_PATH if your
+poloka-core library is not install in a standard path directory.
 
 Below are the standard autotools installation instructions.
 

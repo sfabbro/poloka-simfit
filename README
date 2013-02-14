@@ -1,15 +1,11 @@
-poloka - aka TOADS
-==================
+poloka-lc
+=========
 
-Poloka is a software package to process astronomical images. It can do
-several processing steps such as flat-fielding, detection/object
-cataloguing, aperture and PSF photometry, geometric
-transformation/resampling and image stacking. But what it does best is
-image subtraction (PSF match) and light curve reconstruction for
-transient objects such as supernova.
+poloka is a software package to process astronomical
+images. poloka-lc is the lightcurve production module
+of the poloka suite. It contains:
 
-To install poloka, see the INSTALL file. 
+* simultaneous fitting of point source + background photometry
+* various tools to calibrate the resulting light curve
 
-To develop with poloka, read the code :( and see README.dev. 
-For all other documentation, we have yet to write something decent. To
-contact authors, see AUTHORS.
+To install poloka-lc, see the INSTALL file.
