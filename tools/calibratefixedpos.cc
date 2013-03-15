@@ -18,21 +18,19 @@
 #include <poloka/reducedutils.h>
 #include <poloka/gtransfo.h>
 
-using namespace std;
-
-static void usage(const char *pgname)
-{
-  cerr << pgname << " <dbimage1> <dbimage2> <dbimage3> ... -r <referenceimage> -p <catalog4positions> <referenceimageforpositions>" << endl ;
-  cerr << "options:"<< endl;
-  cerr << "     -o <catalog> : output catalog name (default is calibration.list)" << endl;
-  cerr << "     -n # : max number of images (default is unlimited)" << endl;
-  exit(1);
+static void usage(const char *progname) {
+  cerr << "Usage: " << progname << " [OPTION]... DBIMAGE...\n"
+    " ... -r <referenceimage> -p <catalog4positions> <referenceimageforpositions>"
+       << "\n\n"
+       << "    -o FILE : output catalog name (default: calibration.list)\n"
+       << "    -n N    : max number of images (default: unlimited)\n\n";
+  exit(EXIT_FAILURE);
 }
 
 static string getkey(const string& prefix, const DictFile& catalog) {
-  if(!catalog.HasKey(prefix)) {
+  if (!catalog.HasKey(prefix)) {
     cerr << "catalog does not not have info about " << prefix << endl;
-    exit(2);
+    exit(EXIT_FAILURE);
     return "absent";
   }
   return prefix;
@@ -48,40 +46,40 @@ class CalibratedStar : public BaseStar {
   int id;
 };
 
-int main(int argc, char **argv)
-{
-  string referencedbimage = "";
+int main(int argc, char **argv) {
+
+  if (argc < 9) usage(argv[0]);
+
+  string refname;
   string matchedcatalogname = "calibration_fixpos.list";
-  vector<string> dbimages;
+  vector<string> imList;
   size_t maxnimages = 0;
-  string referencedbimage_for_positions = "";
-  string catalognamefor_positions = "";
+  string refname_for_positions;
+  string catalognamefor_positions;
   
-  if (argc < 9)  {usage(argv[0]);}
-  for (int i=1; i<argc; ++i)
-    {
+  for (int i=1; i<argc; ++i) {
       char *arg = argv[i];
-      if (arg[0] != '-')
-	{
-	  dbimages.push_back(arg);continue;
-	}
-      switch (arg[1])
-	{
-	case 'r' : referencedbimage = argv[++i]; break;
-	case 'o' : matchedcatalogname = argv[++i]; break;
-	case 'n' : maxnimages = atoi(argv[++i]); break;
-	case 'p' : catalognamefor_positions = argv[++i]; referencedbimage_for_positions = argv[++i]; break;
-	default : 
-	  cerr << "unknown option " << arg << endl;
-	  usage(argv[0]);
-	}
-    }
+      if (arg[0] != '-') {
+	imList.push_back(arg);
+	continue;
+      }
+      switch (arg[1]) {
+      case 'r': refname = argv[++i]; break;
+      case 'o': matchedcatalogname = argv[++i]; break;
+      case 'n': maxnimages = atoi(argv[++i]); break;
+      case 'p': catalognamefor_positions = argv[++i]; referencedbimage_for_positions = argv[++i]; break;
+      default: 
+	cerr << argv[0] << ": unknown option " << arg << endl;
+	usage(argv[0]);
+      }
+  }
   
-  cout << "catalog          = " << catalognamefor_positions << endl;
-  cout << "referencedbimage = " << referencedbimage << endl;
-  cout << "referencedbimage_for_positions = " << referencedbimage_for_positions << endl;  
-  cout << "n. dbimages      = " << dbimages.size();
-  if( maxnimages > 0 && dbimages.size() > maxnimages) cout << " limited to " << maxnimages;
+  cout << "catalog                 = " << catalognamefor_positions << endl;
+  cout << "reference               = " << refname << endl;
+  cout << "reference_for_positions = " << refname_for_positions << endl;  
+  cout << "n. dbimages             = " << imList.size();
+  if( maxnimages > 0 && imList.size() > maxnimages) 
+    cout << " limited to " << maxnimages;
   cout << endl;
   
   GtransfoRef direct = FindTransfo(referencedbimage_for_positions, referencedbimage);
@@ -89,9 +87,9 @@ int main(int argc, char **argv)
   // put all of this info in a LightCurveList which is the food of the photometric fitter
   LightCurveList lclist;
   lclist.RefImage = new ReducedImage(referencedbimage);
-  for (size_t im=0;im<dbimages.size();++im) {
+  for (size_t im=0;im<imList.size();++im) {
     if ( maxnimages > 0 && im >=  maxnimages ) break;
-    lclist.Images.push_back(new ReducedImage(dbimages[im]));
+    lclist.Images.push_back(new ReducedImage(imList[im]));
   }
 
   FitsHeader header(lclist.RefImage->FitsName());

@@ -20,21 +20,20 @@
 #include <poloka/apersestar.h>
 #include <poloka/fastfinder.h>
 
-using namespace std;
-
-static void usage(const char *pgname)
-{
-  cerr << pgname << " <dbimage1> <dbimage2> <dbimage3> ... -r <referenceimage> -c <catalog>" << endl ;
-  cerr << "options:"<< endl;
-  cerr << "     -o <catalog> : output catalog name (default is calibration.list)" << endl;
-  cerr << "     -n # : max number of images (default is unlimited)" << endl;
-  cerr << "     -f # : first star to fit (def is 1, starts at 1)" << endl;
-  cerr << "     -l # : last star to fit (def is 1000, included)" << endl;
-  exit(1);
+static void usage(const char *progname) {
+  cerr << "Usage: " << progname << " [OPTION] DBIMAGE...\n"
+       << "Calibrate a light curve using external catalogue\n\n"
+       << "    -r DBIMAGE: reference image (mandatory)\n"
+       << "    -c FILE   : external catalog (mandatory)\n"
+       << "    -o FILE   : output catalog name (default: calibration.list)\n"
+       << "    -n INT    : max number of images (default: unlimited)\n"
+       << "    -f INT    : first star to fit (default: 1, starts at 1)\n"
+       << "    -l INT    : last star to fit (default: 1000, included)\n\n";
+  exit(EXIT_FAILURE);
 }
 
 static string getkey(const string& prefix, const DictFile& catalog) {
-  if(!catalog.HasKey(prefix)) {
+  if (!catalog.HasKey(prefix)) {
     cerr << "catalog does not not have info about " << prefix << endl;
     exit(2);
     return "absent";
@@ -44,8 +43,8 @@ static string getkey(const string& prefix, const DictFile& catalog) {
 
 class CalibratedStar : public BaseStar {
  public:
-  CalibratedStar() {};
-  CalibratedStar(BaseStar& toto) : BaseStar(toto) {};
+  CalibratedStar() {}
+  CalibratedStar(BaseStar& toto) : BaseStar(toto) {}
   double ra,dec;
   double u,g,r,i,z,x,y;
   double ue,ge,re,ie,ze;
@@ -55,56 +54,57 @@ class CalibratedStar : public BaseStar {
   int id;
 };
 
-static double sqr(const double& x) {return x*x;};
+static double sqr(const double& x) { return x*x; }
 
-int main(int argc, char **argv)
-{
-  string referencedbimage = "";
-  string catalogname = "";
+int main(int argc, char **argv) {
+
+  if (argc < 7) usage(argv[0]);
+
+  string refname;
+  string catalogname;
   string matchedcatalogname = "calibration.list";
-  vector<string> dbimages;
+  vector<string> imList;
   size_t maxnimages = 0;
   int first_star = 1;
   int last_star  = 1000;
-  if (argc < 7)  {usage(argv[0]);}
-  for (int i=1; i<argc; ++i)
-    {
-      char *arg = argv[i];
-      if (arg[0] != '-')
-	{
-	  dbimages.push_back(arg);continue;
-	}
-      switch (arg[1])
-	{
-	case 'f' : first_star=atoi(argv[++i]); break;
-	case 'l' : last_star=atoi(argv[++i]); break;
-	case 'r' : referencedbimage = argv[++i]; break;
-	case 'c' : catalogname = argv[++i]; break;
-	case 'o' : matchedcatalogname = argv[++i]; break;
-	case 'n' : maxnimages = atoi(argv[++i]); break;
-	default : 
-	  cerr << "unknown option " << arg << endl;
-	  usage(argv[0]);
-	}
-    }
-  
 
-  if(!FileExists(catalogname)) {
-    cerr << "cant find catalog " << catalogname << endl;
-    usage(argv[0]);
+  for (int i=1; i<argc; ++i) {
+    char *arg = argv[i];
+    if (arg[0] != '-') {
+      imList.push_back(arg);
+      continue;
+    }
+    switch (arg[1]) {
+    case 'f': first_star = atoi(argv[++i]); break;
+    case 'l': last_star = atoi(argv[++i]); break;
+    case 'r': refname = argv[++i]; break;
+    case 'c': catalogname = argv[++i]; break;
+    case 'o': matchedcatalogname = argv[++i]; break;
+    case 'n': maxnimages = atoi(argv[++i]); break;
+    default: 
+      cerr << argv[0] << ": unknown option " << arg << endl;
+      usage(argv[0]);
+    }
+  }  
+
+  if (!FileExists(catalogname)) {
+    cerr << argv[0] << ": cant find catalog " << catalogname << endl;
+    return EXIT_FAILURE;
   }
-  cout << "catalog          = " << catalogname << endl;
-  cout << "referencedbimage = " << referencedbimage << endl;
-  cout << "n. dbimages      = " << dbimages.size();
-  if( maxnimages > 0 && dbimages.size() > maxnimages) cout << " limited to " << maxnimages;
+
+  cout << argv[0] << " catalog     = " << catalogname << endl
+       << argv[0] << " reference   = " << refname << endl
+       << argv[0] << " n. dbimages = " << imList.size();
+  if ( maxnimages > 0 && imList.size() > maxnimages) 
+    cout << " limited to " << maxnimages;
   cout << endl;
 
   // put all of this info in a LightCurveList which is the food of the photometric fitter
   LightCurveList lclist;
-  lclist.RefImage = new ReducedImage(referencedbimage);
-  for (size_t im=0;im<dbimages.size();++im) {
-    if ( maxnimages > 0 && im >=  maxnimages ) break;
-    lclist.Images.push_back(new ReducedImage(dbimages[im]));
+  lclist.RefImage = new ReducedImage(refname);
+  for (size_t im=0; im<imList.size() ;++im) {
+    if ( maxnimages > 0 && im >= maxnimages ) break;
+    lclist.Images.push_back(new ReducedImage(imList[im]));
   }
   
   // we know want to put new objects in the list
@@ -125,7 +125,7 @@ int main(int argc, char **argv)
   //int requiredlevel=2;
   // get keys for mag
   string band = header.KeyVal("TOADBAND");
-  string mag_key=getkey("m"+band,catalog);
+  string mag_key=getkey("m" + band, catalog);
   
   double mag_limit = 99;
   
@@ -136,9 +136,9 @@ int main(int argc, char **argv)
   
 
   BaseStar star;
-  int count_total=0;
-  int count_total_stars=0;
-  int count_ok=0;
+  int count_total = 0;
+  int count_total_stars = 0;
+  int count_ok = 0;
   
   double mag;
   char name[100];
@@ -148,26 +148,21 @@ int main(int argc, char **argv)
   // open catalog for match
   string refimage_catalog = lclist.RefImage->AperCatalogName();
   if( !FileExists(refimage_catalog)) {
-    cerr << "need aperse catalog of reference image to calibrate" << endl;
-    exit(EXIT_FAILURE);
+    cerr << argv[0] << ": need aperse catalog of reference image to calibrate" << endl;
+    return(EXIT_FAILURE);
   }
      
   AperSEStarList starlist(refimage_catalog);
   FastFinder finder((const BaseStarList&)starlist);
   
-  for(DictFileCIterator entry=catalog.begin();entry!=catalog.end();++entry) {
+  for(DictFileCIterator entry=catalog.begin(); entry!=catalog.end(); ++entry) {
 
-    count_total++;
-    
+    count_total++;    
     //if(int(entry->Value("level"))<requiredlevel)  continue; // not a star with correct level 
     mag=entry->Value(mag_key);
-
-    
-
     count_total_stars++;
     
     if(mag>mag_limit) continue; // ignore dim stars unused for calibration to save CPU
-
 
     star.x=entry->Value("ra"); //star.x=entry->Value("x"); // ra (deg)
     star.y=entry->Value("dec");//star.y=entry->Value("y"); // dec (deg)
@@ -179,19 +174,18 @@ int main(int argc, char **argv)
     // check again
     if (!W.InFrame(star)) continue; // bye bye
     
-    
     // now do the match to get better coordinates
     const BaseStar * closest_basestar = NULL;  
     const AperSEStar * second_closest_star 
       = dynamic_cast<const AperSEStar *>(finder.SecondClosest(star,50.,closest_basestar)); // 10 pixels
-    if ( !closest_basestar) {
-      cerr << "ERROR cannot find star at " << star.x << " " << star.y << endl;
+    if (!closest_basestar) {
+      cerr << argv[0] << ": cannot find star at " << star.x << " " << star.y << endl;
       continue;
     }
     count_ok++;
     
-    if(count_ok<first_star || count_ok>last_star) {
-      cout << "warning, skipping star number " << count_ok << endl;
+    if (count_ok<first_star || count_ok>last_star) {
+      cerr << argv[0] << ": skipping star number " << count_ok << endl;
       continue;
     }
 
@@ -222,8 +216,7 @@ int main(int argc, char **argv)
       mxx *= seeing_scale;
       myy *= seeing_scale;
       mxy *= seeing_scale;
-      
-      
+            
       Point dP =  *second_closest_star - *closest_basestar;
       dist = sqrt(dP.x*dP.x+dP.y*dP.y);
       
@@ -250,7 +243,7 @@ int main(int argc, char **argv)
       double nsigma2 = nsigma_moffat*nsigma_moffat;
       double frac_moffat = 0.1591549431*(-2*nsigma_moffat+(3.141592654-2*atan(nsigma_moffat))*(1.+nsigma2))/(1.+nsigma2);
       
-      if(is_inside) {
+      if (is_inside) {
 	frac_gaus   = 1.-frac_gaus;
 	frac_moffat = 1.-frac_moffat;
       }
@@ -273,7 +266,7 @@ int main(int argc, char **argv)
 	   << frac_moffat << " " 
 	   << max_flux_contamination/closest_star->flux << " "
 	   << endl;
-    }    
+    }
     
     // set flux
     star.flux=pow(10.,-0.4*mag);
@@ -291,8 +284,7 @@ int main(int argc, char **argv)
     rstar->jdmin = -1.e30; // always bright
     rstar->jdmax = 1.e30;   
     lclist.Objects.push_back(rstar);
-    
-      
+          
     // and also creat a lc (something stupid in the design)
     LightCurve lc(rstar);
     for (ReducedImageCIterator im=lclist.Images.begin(); im != lclist.Images.end(); ++im) {
@@ -306,25 +298,26 @@ int main(int argc, char **argv)
     cstar.ra=entry->Value("ra"); // entry->Value("x");
     cstar.dec=entry->Value("dec"); // entry->Value("y");
     
-    if(entry->HasKey("mu")) cstar.u=entry->Value("mu"); else cstar.u=99;
-    if(entry->HasKey("mg")) cstar.g=entry->Value("mg"); else cstar.g=99;
-    if(entry->HasKey("mr")) cstar.r=entry->Value("mr"); else cstar.r=99;
-    if(entry->HasKey("mi")) cstar.i=entry->Value("mi"); else cstar.i=99;
-    if(entry->HasKey("mz")) cstar.z=entry->Value("mz"); else cstar.z=99;
-    if(entry->HasKey("emu")) cstar.ue=entry->Value("emu"); else cstar.ue=99;
-    if(entry->HasKey("emg")) cstar.ge=entry->Value("emg"); else cstar.ge=99;
-    if(entry->HasKey("emr")) cstar.re=entry->Value("emr"); else cstar.re=99;
-    if(entry->HasKey("emi")) cstar.ie=entry->Value("emi"); else cstar.ie=99;
-    if(entry->HasKey("emz")) cstar.ze=entry->Value("emz"); else cstar.ze=99;
+    if (entry->HasKey("mu")) cstar.u=entry->Value("mu"); else cstar.u=99;
+    if (entry->HasKey("mg")) cstar.g=entry->Value("mg"); else cstar.g=99;
+    if (entry->HasKey("mr")) cstar.r=entry->Value("mr"); else cstar.r=99;
+    if (entry->HasKey("mi")) cstar.i=entry->Value("mi"); else cstar.i=99;
+    if (entry->HasKey("mz")) cstar.z=entry->Value("mz"); else cstar.z=99;
+    if (entry->HasKey("emu")) cstar.ue=entry->Value("emu"); else cstar.ue=99;
+    if (entry->HasKey("emg")) cstar.ge=entry->Value("emg"); else cstar.ge=99;
+    if (entry->HasKey("emr")) cstar.re=entry->Value("emr"); else cstar.re=99;
+    if (entry->HasKey("emi")) cstar.ie=entry->Value("emi"); else cstar.ie=99;
+    if (entry->HasKey("emz")) cstar.ze=entry->Value("emz"); else cstar.ze=99;
     
     cstar.flux=star.flux;
     cstar.id=count_total;
     cstar.x=star.x;
     cstar.y=star.y;
+
     if(second_closest_star) {
       cstar.neighborDist = dist;
       cstar.neighborFlux = second_closest_star->flux;
-    }else{
+    } else {
       cstar.neighborDist = closest_star->neighborDist;
       cstar.neighborFlux = closest_star->neighborFlux;
     }
@@ -413,14 +406,14 @@ int main(int argc, char **argv)
      vignet::resize calls vignet::load and there get_dimage_from_server(...)
 
    */
-  for(LightCurveList::iterator ilc = lclist.begin(); ilc!= lclist.end() ; ++ilc) { // loop on lc
+  for (LightCurveList::iterator ilc = lclist.begin(); ilc!= lclist.end() ; ++ilc) { // loop on lc
     // each entry is a star
     doFit.zeFit.Load(*ilc,false,true);
   }
 
 
   
-  for(LightCurveList::iterator ilc = lclist.begin(); ilc!= lclist.end() ; ++ilc) { // loop on lc
+  for (LightCurveList::iterator ilc = lclist.begin(); ilc!= lclist.end() ; ++ilc) { // loop on lc
     
     doFit(*ilc);
     
@@ -517,4 +510,3 @@ int main(int argc, char **argv)
   stream.close();
   return EXIT_SUCCESS;
 }
-
